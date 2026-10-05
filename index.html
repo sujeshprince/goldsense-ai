@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en" data-accent="gold" data-density="comfortable">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#070B14" />
+  <meta name="description" content="GoldSense AI — real-time gold futures intelligence. Normalize MCX gold contracts, detect price inefficiencies and surface arbitrage opportunities." />
+  <title>GoldSense AI — Real-Time Gold Futures Intelligence</title>
+
+  <!-- Fonts (CDN, purely cosmetic: full system fallback stack is declared in style.css) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070B14'/%3E%3Cpath d='M9 21l4.5-11h5L23 21h-3.3l-.9-2.4h-5.6L12.3 21H9zm5.2-5h3.6L16 11l-1.8 5z' fill='%23F5C542'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- Ambient background layers (purely decorative) -->
+  <div class="ambient" aria-hidden="true">
+    <div class="ambient__grid"></div>
+    <div class="ambient__glow ambient__glow--a"></div>
+    <div class="ambient__glow ambient__glow--b"></div>
+    <div class="ambient__scan"></div>
+  </div>
+
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <!-- ============================= ICON SPRITE ============================= -->
+  <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-dashboard" viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-16v4h6V4h-6Z"/></symbol>
+    <symbol id="i-market" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2.5-7 4 14L15.5 9l2 3H21"/></symbol>
+    <symbol id="i-arbitrage" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13m0 0-3-3m3 3-3 3M20 16H7m0 0 3-3m-3 3 3 3"/></symbol>
+    <symbol id="i-contract" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h5M10 17h5"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2Z"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 16v-5a6 6 0 1 0-12 0v5l-1.5 2.5h15L18 16Z"/><path d="M10 21a2.2 2.2 0 0 0 4 0"/></symbol>
+    <symbol id="i-backtest" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5m0 14h16"/><path d="M7 15l3.5-4 3 2.5L20 7"/><path d="M20 7h-3.5M20 7v3.5"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 1.8"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 13.9 8l5.6 1.9-5.6 2L12 17.5 10.1 12 4.5 10 10.1 8 12 2.5Z"/><path d="M18.5 16.5 19.3 19l2.2.8-2.2.8-.8 2.4-.8-2.4-2.2-.8 2.2-.8.8-2.5Z"/></symbol>
+    <symbol id="i-trend" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15.5 11 10l3.5 3.5L20 7"/><path d="M15.5 7H20v4.5"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5.5c0 4 3 7.5 7 9.5 4-2 7-5.5 7-9.5V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.5h-4.5"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5h5v5M19 5l-8 8"/><path d="M18 14v4.5A1.5 1.5 0 0 1 16.5 20h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20V10M12 20V4M19 20v-7"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 8 4.5-8 4.5-8-4.5L12 3Z"/><path d="m4 12.5 8 4.5 8-4.5"/></symbol>
+  </svg>
+
+  <!-- ============================= SIDEBAR ============================= -->
+  <aside class="sidebar" id="sidebar" aria-label="Primary">
+    <div class="sidebar__brand">
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32"><defs><linearGradient id="gm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F5C542"/><stop offset="1" stop-color="#B8860B"/></linearGradient></defs><rect x="1" y="1" width="30" height="30" rx="9" fill="none" stroke="url(#gm)" stroke-width="1.4" opacity=".55"/><path d="M9 22.5 14 9.5h4l5 13h-3.6l-1-2.7h-4.8l-1 2.7H9Zm5.6-5.4h2.8L16 12.2l-1.4 4.9Z" fill="url(#gm)"/><path d="M7 25h18" stroke="url(#gm)" stroke-width="1.2" opacity=".5"/></svg>
+      </span>
+      <span class="brand__text">
+        <strong>GoldSense<em>AI</em></strong>
+        <small>Gold futures intelligence</small>
+      </span>
+      <button class="icon-btn sidebar__close" id="sidebarClose" type="button" aria-label="Close navigation">
+        <svg class="ico"><use href="#i-close"/></svg>
+      </button>
+    </div>
+
+    <nav class="nav" aria-label="Dashboard sections">
+      <p class="nav__label">Terminal</p>
+      <ul class="nav__list" id="navList">
+        <li>
+          <button class="nav__item is-active" type="button" data-route="dashboard" aria-current="page">
+            <svg class="ico"><use href="#i-dashboard"/></svg><span>Dashboard</span><i class="nav__live">Live</i>
+          </button>
+        </li>
+        <li>
+          <button class="nav__item" type="button" data-route="market">
+            <svg class="ico"><use href="#i-market"/></svg><span>Market Overview</span>
+          </button>
+        </li>
+        <li>
+          <button class="nav__item" type="button" data-route="arbitrage">
+            <svg class="ico"><use href="#i-arbitrage"/></svg><span>Arbitrage Scanner</span><i class="nav__badge" id="navArbBadge">0</i>
+          </button>
+        </li>
+        <li>
+          <button class="nav__item" type="button" data-route="contracts">
+            <svg class="ico"><use href="#i-contract"/></svg><span>Contract Analysis</span>
+          </button>
+        </li>
+        <li>
+          <button class="nav__item" type="button" data-route="signals">
+            <svg class="ico"><use href="#i-signal"/></svg><span>Signals</span><i class="nav__badge nav__badge--gold" id="navSigBadge">0</i>
+          </button>
+        </li>
+        <li>
+          <button class="nav__item" type="button" data-route="alerts">
+            <svg class="ico"><use href="#i-bell"/></svg><span>Alerts</span><i class="nav__badge nav__badge--red" id="navAlertBadge">0</i>
+          </button>
+        </li>
+        <li>
+          <button class="nav__item" type="button" data-route="backtest">
+            <svg class="ico"><use href="#i-backtest"/></svg><span>Backtesting</span>
+          </button>
+        </li>
+        <li>
+          <button class="nav__item" type="button" data-route="settings">
+            <svg class="ico"><use href="#i-settings"/></svg><span>Settings</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar__foot">
+      <div class="engine-card">
+        <div class="engine-card__row">
+          <span class="engine-card__label"><svg class="ico ico--xs"><use href="#i-spark"/></svg> AI Engine</span>
+          <span class="dot dot--live" id="engineDot"></span>
+        </div>
+        <strong class="engine-card__state">Online</strong>
+        <div class="engine-card__meta">
+          <span>v2.4.1 · Normalizer</span><span id="engineLatency">12 ms</span>
+        </div>
+        <div class="engine-card__bar"><span id="engineBar" style="width:72%"></span></div>
+      </div>
+      <div class="market-state">
+        <span class="market-state__label">Market Status</span>
+        <span class="market-state__value"><span class="dot dot--live"></span> Live Simulation</span>
+      </div>
+    </div>
+  </aside>
+  <div class="scrim" id="sidebarScrim" hidden></div>
+
+  <!-- ============================= APP SHELL ============================= -->
+  <div class="shell">
+    <!-- ---------- TOP NAVBAR ---------- -->
+    <header class="topbar">
+      <div class="topbar__left">
+        <button class="icon-btn topbar__burger" id="sidebarToggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">
+          <svg class="ico"><use href="#i-menu"/></svg>
+        </button>
+        <div class="topbar__title">
+          <h1 id="pageTitle">Market Intelligence</h1>
+          <div class="topbar__crumbs">
+            <span class="chip chip--gold">MCX • GOLD FUTURES</span>
+            <span class="chip chip--ghost" id="routeChip">Dashboard</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar__right">
+        <!-- Search -->
+        <div class="search" id="search">
+          <label class="sr-only" for="searchInput">Search contracts, sections and features</label>
+          <svg class="ico search__icon"><use href="#i-search"/></svg>
+          <input id="searchInput" type="search" autocomplete="off" spellcheck="false"
+                 placeholder="Search GOLDM, arbitrage, signals…" aria-expanded="false" aria-controls="searchResults" role="combobox" />
+          <kbd class="search__kbd">/</kbd>
+          <div class="search__results" id="searchResults" role="listbox" hidden></div>
+        </div>
+
+        <!-- Market status -->
+        <div class="status-pill" id="statusPill" title="Simulated MCX session">
+          <span class="dot dot--live"></span>
+          <span class="status-pill__text">
+            <strong id="statusLabel">Market Open</strong>
+            <small id="statusSub">Simulated feed</small>
+          </span>
+        </div>
+
+        <!-- Clock -->
+        <div class="clock" title="Indian Standard Time (IST)">
+          <svg class="ico ico--sm"><use href="#i-clock"/></svg>
+          <div class="clock__text">
+            <strong id="clockTime">--:--:--</strong>
+            <small id="clockDate">—</small>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <button class="icon-btn icon-btn--badge" id="bellBtn" type="button" aria-label="Open alerts" data-route="alerts">
+          <svg class="ico"><use href="#i-bell"/></svg>
+          <span class="icon-btn__badge" id="bellBadge">0</span>
+        </button>
+
+        <!-- Profile -->
+        <button class="profile" id="profileBtn" type="button" aria-label="Account menu">
+          <span class="profile__avatar">AK</span>
+          <span class="profile__text"><strong>Aarav Kulkarni</strong><small>Quant Analyst</small></span>
+          <svg class="ico ico--sm profile__chev"><use href="#i-chevron"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ---------- MAIN ---------- -->
+    <main class="main" id="main" tabindex="-1">
+
+      <!-- ============ VIEW: DASHBOARD ============ -->
+      <section class="view is-active" id="view-dashboard" data-view="dashboard" aria-label="Dashboard">
+
+        <!-- Hero -->
+        <section class="hero glass" aria-labelledby="heroTitle">
+          <div class="hero__main">
+            <p class="hero__eyebrow"><span class="pulse-dot"></span> AI-Powered Market Intelligence · Session <span id="heroSession">GS-1</span></p>
+            <h2 class="hero__title" id="heroTitle">GoldSense <em>AI</em></h2>
+            <p class="hero__subtitle">Real-Time Gold Futures Intelligence</p>
+            <p class="hero__text">
+              Analyze normalized gold contracts, identify price inefficiencies, and discover potential
+              arbitrage opportunities in real time.
+            </p>
+            <div class="hero__actions">
+              <button class="btn btn--primary" id="scanBtn" type="button">
+                <svg class="ico ico--sm"><use href="#i-market"/></svg> Scan Market
+              </button>
+              <button class="btn btn--ghost" id="viewSignalsBtn" type="button" data-route="signals">
+                <svg class="ico ico--sm"><use href="#i-signal"/></svg> View Signals
+              </button>
+            </div>
+          </div>
+          <div class="hero__side">
+            <ul class="hero__stats">
+              <li><span>Reference (10g)</span><strong id="heroRef">₹72,900.00</strong></li>
+              <li><span>Contracts tracked</span><strong id="heroCount">3</strong></li>
+              <li><span>Last scan</span><strong id="heroScanAge">just now</strong></li>
+              <li><span>Model confidence</span><strong id="heroConf">94%</strong></li>
+            </ul>
+            <div class="hero__ticker" aria-hidden="true">
+              <div class="ticker" id="ticker"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- KPI cards -->
+        <section aria-labelledby="kpiTitle">
+          <div class="section-head">
+            <h3 class="section-title" id="kpiTitle">Live Market Snapshot</h3>
+            <p class="section-note"><span class="dot dot--live"></span> Simulated tick every <span id="tickRate">2.6s</span></p>
+          </div>
+          <div class="kpi-grid" id="kpiGrid"><!-- rendered by script.js --></div>
+        </section>
+
+        <!-- Price chart -->
+        <section class="panel glass" aria-labelledby="priceChartTitle">
+          <header class="panel__head">
+            <div>
+              <h3 class="panel__title" id="priceChartTitle">Gold Futures Price Movement</h3>
+              <p class="panel__sub">10-gram equivalent price · ₹ per normalized unit</p>
+            </div>
+            <div class="panel__tools">
+              <div class="seg" id="timeframeSeg" role="group" aria-label="Chart timeframe">
+                <button class="seg__btn" type="button" data-tf="1H">1H</button>
+                <button class="seg__btn" type="button" data-tf="4H">4H</button>
+                <button class="seg__btn is-active" type="button" data-tf="1D">1D</button>
+                <button class="seg__btn" type="button" data-tf="1W">1W</button>
+                <button class="seg__btn" type="button" data-tf="1M">1M</button>
+              </div>
+              <button class="icon-btn" id="chartResetBtn" type="button" title="Reset series to live ticks" aria-label="Reset chart series">
+                <svg class="ico"><use href="#i-refresh"/></svg>
+              </button>
+            </div>
+          </header>
+          <div class="chart-legend" id="priceLegend"><!-- legend chips (toggle datasets) --></div>
+          <div class="chart-wrap chart-wrap--lg">
+            <canvas id="chartPrice" aria-label="Line chart of normalized gold futures prices" role="img"></canvas>
+          </div>
+        </section>
+
+        <!-- Contract intelligence + signals -->
+        <div class="grid-2">
+          <section class="panel glass" aria-labelledby="ciTitle">
+            <header class="panel__head">
+              <div>
+                <h3 class="panel__title" id="ciTitle">Contract Intelligence</h3>
+                <p class="panel__sub">Live price vs. AI normalized reference</p>
+              </div>
+              <button class="btn btn--sm btn--gold" id="analyzeBtn" type="button">
+                <svg class="ico ico--sm"><use href="#i-contract"/></svg> Analyze Contract
+              </button>
+            </header>
+            <div class="table-scroll">
+              <table class="table" id="contractTable">
+                <caption class="sr-only">Gold futures contracts with price, normalized price, spread, change and AI signal</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Contract</th>
+                    <th scope="col" class="num">Price</th>
+                    <th scope="col" class="num">Normalized</th>
+                    <th scope="col" class="num">Spread</th>
+                    <th scope="col" class="num">Change</th>
+                    <th scope="col">Signal</th>
+                    <th scope="col"><span class="sr-only">Actions</span></th>
+                  </tr>
+                </thead>
+                <tbody id="contractTbody"><!-- rendered by script.js --></tbody>
+              </table>
+            </div>
+            <footer class="panel__foot">
+              <span class="hint"><svg class="ico ico--xs"><use href="#i-shield"/></svg> Normalized to 10-gram equivalent for cross-contract comparison.</span>
+            </footer>
+          </section>
+
+          <section class="panel glass" aria-labelledby="sigTitle">
+            <header class="panel__head">
+              <div>
+                <h3 class="panel__title" id="sigTitle">AI Trading Signals</h3>
+                <p class="panel__sub">Model conviction on a 0–100 scale</p>
+              </div>
+              <button class="btn btn--sm btn--ghost" type="button" data-route="signals">All signals</button>
+            </header>
+            <div class="signal-list" id="signalList"><!-- rendered by script.js --></div>
+          </section>
+        </div>
+
+        <!-- Arbitrage scanner -->
+        <section class="panel glass panel--scanner" aria-labelledby="arbTitle" id="scannerPanel">
+          <header class="panel__head">
+            <div>
+              <h3 class="panel__title" id="arbTitle">AI Arbitrage Scanner</h3>
+              <p class="panel__sub">Cross-contract spread detection · simulated execution layer</p>
+            </div>
+            <div class="scanner-status" id="scannerStatus">
+              <span class="dot dot--live"></span><strong>SCANNING MARKET</strong>
+              <em id="scannerCycle">cycle 000</em>
+            </div>
+          </header>
+          <div class="scanbar" aria-hidden="true"><span></span></div>
+          <div class="opp-grid" id="oppGrid"><!-- rendered by script.js --></div>
+          <footer class="panel__foot">
+            <span class="hint"><svg class="ico ico--xs"><use href="#i-shield"/></svg> Frontend simulation only — no orders are ever routed to an exchange.</span>
+          </footer>
+        </section>
+
+        <!-- Insight + heatmap -->
+        <div class="grid-2">
+          <section class="panel insight" aria-labelledby="insightTitle">
+            <header class="panel__head">
+              <div class="insight__head">
+                <span class="insight__glyph" aria-hidden="true"><svg class="ico"><use href="#i-spark"/></svg></span>
+                <h3 class="panel__title" id="insightTitle">GoldSense AI Insight</h3>
+              </div>
+              <button class="btn btn--sm btn--gold" id="insightBtn" type="button">
+                <svg class="ico ico--sm"><use href="#i-refresh"/></svg> Generate New Insight
+              </button>
+            </header>
+            <blockquote class="insight__quote" id="insightQuote">
+              GOLDPETAL is currently trading ₹43 above its normalized reference price. The spread exceeds the
+              historical threshold, creating a potential arbitrage opportunity.
+            </blockquote>
+            <div class="insight__meta">
+              <div class="meta"><span>Confidence</span><strong id="insightConf">94%</strong></div>
+              <div class="meta"><span>Risk</span><strong class="tag tag--amber" id="insightRisk">Moderate</strong></div>
+              <div class="meta"><span>Market Condition</span><strong class="tag tag--green" id="insightCond">Bullish</strong></div>
+              <div class="meta"><span>Model</span><strong>GS-Norm v2.4</strong></div>
+            </div>
+            <div class="insight__typing" id="insightTyping" aria-hidden="true"><span></span><span></span><span></span></div>
+          </section>
+
+          <section class="panel glass" aria-labelledby="heatTitle">
+            <header class="panel__head">
+              <div>
+                <h3 class="panel__title" id="heatTitle">Contract Market Heatmap</h3>
+                <p class="panel__sub">Intensity = intraday % move</p>
+              </div>
+              <div class="heat-legend" aria-hidden="true"><span>−</span><i class="heat-legend__bar"></i><span>+</span></div>
+            </header>
+            <div class="heat-grid" id="heatGrid"><!-- rendered by script.js --></div>
+          </section>
+        </div>
+
+        <!-- Alerts -->
+        <section class="panel glass" aria-labelledby="alertsTitle">
+          <header class="panel__head">
+            <div>
+              <h3 class="panel__title" id="alertsTitle">Smart Alerts</h3>
+              <p class="panel__sub">Threshold, volatility and model events</p>
+            </div>
+            <div class="panel__tools">
+              <div class="seg seg--sm" id="alertFilter" role="group" aria-label="Filter alerts">
+                <button class="seg__btn is-active" type="button" data-filter="all">All</button>
+                <button class="seg__btn" type="button" data-filter="unread">Unread</button>
+                <button class="seg__btn" type="button" data-filter="arb">Arbitrage</button>
+              </div>
+              <button class="btn btn--sm btn--ghost" id="markReadBtn" type="button">Mark All Read</button>
+            </div>
+          </header>
+          <ul class="alert-list" id="alertList"><!-- rendered by script.js --></ul>
+        </section>
+      </section>
+
+      <!-- ============ VIEW: MARKET OVERVIEW ============ -->
+      <section class="view" id="view-market" data-view="market" aria-label="Market Overview" hidden>
+        <header class="view__head">
+          <div>
+            <h2 class="view__title">Market Overview</h2>
+            <p class="view__sub">Full MCX gold futures complex, normalized to a 10-gram equivalent basis.</p>
+          </div>
+          <button class="btn btn--gold" id="marketScanBtn" type="button">
+            <svg class="ico ico--sm"><use href="#i-market"/></svg> Run Full Scan
+          </button>
+        </header>
+
+        <div class="stat-strip" id="marketStrip"><!-- rendered --></div>
+
+        <section class="panel glass" aria-labelledby="moChartTitle">
+          <header class="panel__head">
+            <div>
+              <h3 class="panel__title" id="moChartTitle">Normalized Price vs. Reference</h3>
+              <p class="panel__sub">All contracts rebased to ₹/10g · reference line = AI normalized value</p>
+            </div>
+            <div class="seg" id="moTfSeg" role="group" aria-label="Chart timeframe">
+              <button class="seg__btn" type="button" data-tf="1H">1H</button>
+              <button class="seg__btn" type="button" data-tf="4H">4H</button>
+              <button class="seg__btn is-active" type="button" data-tf="1D">1D</button>
+              <button class="seg__btn" type="button" data-tf="1W">1W</button>
+              <button class="seg__btn" type="button" data-tf="1M">1M</button>
+            </div>
+          </header>
+          <div class="chart-wrap chart-wrap--lg">
+            <canvas id="chartOverview" aria-label="Normalized contract prices versus reference" role="img"></canvas>
+          </div>
+        </section>
+
+        <div class="grid-2">
+          <section class="panel glass" aria-labelledby="spreadTitle">
+            <header class="panel__head">
+              <div>
+                <h3 class="panel__title" id="spreadTitle">Spread Monitor (₹)</h3>
+                <p class="panel__sub">Deviation from normalized reference · threshold band ±₹40</p>
+              </div>
+            </header>
+            <div class="chart-wrap">
+              <canvas id="chartSpread" aria-label="Spread of each contract versus the reference price" role="img"></canvas>
+            </div>
+          </section>
+          <section class="panel glass" aria-labelledby="volTitle">
+            <header class="panel__head">
+              <div>
+                <h3 class="panel__title" id="volTitle">Simulated Volume Pulse</h3>
+                <p class="panel__sub">Relative turnover per contract (synthetic)</p>
+              </div>
+            </header>
+            <div class="chart-wrap">
+              <canvas id="chartVolume" aria-label="Bar chart of simulated traded volume" role="img"></canvas>
+            </div>
+          </section>
+        </div>
+
+        <section class="panel glass" aria-labelledby="moTableTitle">
+          <header class="panel__head">
+            <div>
+              <h3 class="panel__title" id="moTableTitle">Contract Matrix</h3>
+              <p class="panel__sub">Native contract size, unit value and basis</p>
+            </div>
+            <button class="btn btn--sm btn--ghost" type="button" data-route="contracts">Deep analysis</button>
+          </header>
+          <div class="table-scroll">
+            <table class="table table--wide">
+              <caption class="sr-only">Detailed contract matrix</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Contract</th><th scope="col">Lot size</th>
+                  <th scope="col" class="num">Price (10g eq.)</th><th scope="col" class="num">Native price</th>
+                  <th scope="col" class="num">Open interest</th><th scope="col" class="num">Volume</th>
+                  <th scope="col" class="num">Volatility</th><th scope="col" class="num">Basis</th>
+                  <th scope="col">Signal</th><th scope="col"><span class="sr-only">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody id="matrixTbody"><!-- rendered --></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <!-- ============ VIEW: ARBITRAGE SCANNER ============ -->
+      <section class="view" id="view-arbitrage" data-view="arbitrage" aria-label="Arbitrage Scanner" hidden>
+        <header class="view__head">
+          <div>
+            <h2 class="view__title">Arbitrage Scanner</h2>
+            <p class="view__sub">Every contract pair re-priced each cycle; opportunities ranked by model conviction.</p>
+          </div>
+          <button class="btn btn--gold" id="arbScanBtn" type="button">
+            <svg class="ico ico--sm"><use href="#i-market"/></svg> Scan Market
+          </button>
+        </header>
+
+        <div class="arb-summary" id="arbSummary"><!-- rendered --></div>
+
+        <div class="grid-2">
+          <section class="panel glass" aria-labelledby="arbMatrixTitle">
+            <header class="panel__head">
+              <div>
+                <h3 class="panel__title" id="arbMatrixTitle">Pairwise Spread Matrix</h3>
+                <p class="panel__sub">Green = buy leg, red = sell leg</p>
+              </div>
+            </header>
+            <div class="table-scroll">
+              <table class="table" id="arbMatrix">
+                <caption class="sr-only">Pairwise spread matrix between gold contracts</caption>
+                <thead>
+                  <tr><th scope="col">Pair</th><th scope="col" class="num">Difference</th><th scope="col" class="num">% of ref</th><th scope="col">Legs</th><th scope="col" class="num">Confidence</th></tr>
+                </thead>
+                <tbody id="arbMatrixTbody"><!-- rendered --></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel glass" aria-labelledby="arbHistTitle">
+            <header class="panel__head">
+              <div>
+                <h3 class="panel__title" id="arbHistTitle">Opportunity Frequency</h3>
+                <p class="panel__sub">Detected dislocations over the rolling window</p>
+              </div>
+            </header>
+            <div class="chart-wrap">
+              <canvas id="chartArbFreq" aria-label="Bar chart of arbitrage detections per cycle" role="img"></canvas>
+            </div>
+          </section>
+        </div>
+
+        <section class="panel glass" aria-labelledby="arbListTitle">
+          <header class="panel__head">
+            <div>
+              <h3 class="panel__title" id="arbListTitle">Detected Opportunities</h3>
+              <p class="panel__sub">Ranked · refreshed every simulation tick</p>
+            </div>
+            <div class="scanner-status scanner-status--inline">
+              <span class="dot dot--live"></span><strong>SCANNING MARKET</strong>
+            </div>
+          </header>
+          <div class="opp-grid" id="oppGridFull"><!-- rendered --></div>
+        </section>
+      </section>
+
+      <!-- ============ VIEW: CONTRACT ANALYSIS ============ -->
+      <section class="view" id="view-contracts" data-view="contracts" aria-label="Contract Analysis" hidden>
+        <header class="view__head">
+          <div>
+            <h2 class="view__title">Contract Analysis</h2>
+            <p class="view__sub">Deep-dive each contract: normalization, basis, volatility and model narrative.</p>
+          </div>
+          <button class="btn btn--gold" id="contractsScanBtn" type="button">
+            <svg class="ico ico--sm"><use href="#i-market"/></svg> Refresh Analysis
+          </button>
+        </header>
+        <div class="contract-cards" id="contractCards"><!-- rendered --></div>
+        <section class="panel glass" aria-labelledby="caChartTitle">
+          <header class="panel__head">
+            <div>
+              <h3 class="panel__title" id="caChartTitle">Basis Decomposition</h3>
+              <p class="panel__sub">Each contract's premium / discount versus the AI reference, in ₹</p>
+            </div>
+          </header>
+          <div class="chart-wrap chart-wrap--lg">
+            <canvas id="chartBasis" aria-label="Stacked chart of contract basis versus reference" role="img"></canvas>
+          </div>
+        </section>
+      </section>
+
+      <!-- ============ VIEW: SIGNALS ============ -->
+      <section class="view" id="view-signals" data-view="signals" aria-label="Signals" hidden>
+        <header class="view__head">
+          <div>
+            <h2 class="view__title">AI Trading Signals</h2>
+            <p class="view__sub">Conviction-weighted model output. Signals are analytical, never executable.</p>
+          </div>
+          <button class="btn btn--gold" id="signalsRegenBtn" type="button">
+            <svg class="ico ico--sm"><use href="#i-refresh"/></svg> Recompute Signals
+          </button>
+        </header>
+
+        <div class="grid-3" id="signalCards"><!-- rendered --></div>
+
+        <div class="grid-2">
+          <section class="panel glass" aria-labelledby="sigHistTitle">
+            <header class="panel__head">
+              <div>
+                <h3 class="panel__title" id="sigHistTitle">Signal History</h3>
+                <p class="panel__sub">Last model transitions</p>
+              </div>
+              <button class="btn btn--sm btn--ghost" id="clearSignalHistory" type="button">Clear</button>
+            </header>
+            <ol class="timeline" id="signalHistory"><!-- rendered --></ol>
+          </section>
+          <section class="panel glass" aria-labelledby="confTitle">
+            <header class="panel__head">
+              <div>
+                <h3 class="panel__title" id="confTitle">Model Confidence by Contract</h3>
+                <p class="panel__sub">Conviction vs. current basis</p>
+              </div>
+            </header>
+            <div class="chart-wrap">
+              <canvas id="chartConfidence" aria-label="Bar chart of model confidence per contract" role="img"></canvas>
+            </div>
+          </section>
+        </div>
+
+        <section class="panel insight" aria-labelledby="sigInsightTitle">
+          <header class="panel__head">
+            <div class="insight__head">
+              <span class="insight__glyph" aria-hidden="true"><svg class="ico"><use href="#i-spark"/></svg></span>
+              <h3 class="panel__title" id="sigInsightTitle">GoldSense AI Insight</h3>
+            </div>
+            <button class="btn btn--sm btn--gold" id="insightBtn2" type="button">
+              <svg class="ico ico--sm"><use href="#i-refresh"/></svg> Generate New Insight
+            </button>
+          </header>
+          <blockquote class="insight__quote" id="insightQuote2"></blockquote>
+          <div class="insight__meta">
+            <div class="meta"><span>Confidence</span><strong id="insightConf2">94%</strong></div>
+            <div class="meta"><span>Risk</span><strong class="tag tag--amber" id="insightRisk2">Moderate</strong></div>
+            <div class="meta"><span>Market Condition</span><strong class="tag tag--green" id="insightCond2">Bullish</strong></div>
+          </div>
+          <div class="insight__typing" aria-hidden="true"><span></span><span></span><span></span></div>
+        </section>
+      </section>
+
+      <!-- ============ VIEW: ALERTS ============ -->
+      <section class="view" id="view-alerts" data-view="alerts" aria-label="Alerts" hidden>
+        <header class="view__head">
+          <div>
+            <h2 class="view__title">Smart Alerts</h2>
+            <p class="view__sub">Model events, spread thresholds and volatility warnings — generated live.</p>
+          </div>
+          <div class="panel__tools">
+            <div class="seg" id="alertFilterFull" role="group" aria-label="Filter alerts">
+              <button class="seg__btn is-active" type="button" data-filter="all">All</button>
+              <button class="seg__btn" type="button" data-filter="unread">Unread</button>
+              <button class="seg__btn" type="button" data-filter="arb">Arbitrage</button>
+              <button class="seg__btn" type="button" data-filter="vol">Volatility</button>
+              <button class="seg__btn" type="button" data-filter="signal">Signal</button>
+            </div>
+            <button class="btn btn--gold" id="markReadBtn2" type="button">Mark All Read</button>
+            <button class="btn btn--ghost" id="clearAlertsBtn" type="button">Clear</button>
+          </div>
+        </header>
+        <div class="stat-strip" id="alertStrip"><!-- rendered --></div>
+        <ul class="alert-list alert-list--full" id="alertListFull"><!-- rendered --></ul>
+      </section>
+
+      <!-- ============ VIEW: BACKTESTING ============ -->
+      <section class="view" id="view-backtest" data-view="backtest" aria-label="Backtesting" hidden>
+        <header class="view__head">
+          <div>
+            <h2 class="view__title">Strategy Backtester</h2>
+            <p class="view__sub">Replays the simulated tape against a normalized-spread strategy.</p>
+          </div>
+          <span class="disclaimer-chip"><svg class="ico ico--xs"><use href="#i-shield"/></svg> SIMULATED BACKTEST — NOT FINANCIAL ADVICE</span>
+        </header>
+
+        <div class="bt-layout">
+          <section class="panel glass bt-form" aria-labelledby="btFormTitle">
+            <header class="panel__head">
+              <div><h3 class="panel__title" id="btFormTitle">Configuration</h3>
+                <p class="panel__sub">Defaults are illustrative</p></div>
+            </header>
+            <form id="btForm" novalidate>
+              <div class="field">
+                <label for="btCapital">Starting Capital (₹)</label>
+                <div class="input-wrap">
+                  <span class="input-pre">₹</span>
+                  <input id="btCapital" name="capital" type="number" min="10000" max="10000000" step="10000" value="100000" inputmode="numeric" />
+                </div>
+                <p class="field__hint" id="btCapitalHint">₹1,00,000</p>
+              </div>
+
+              <fieldset class="field">
+                <legend>Strategy</legend>
+                <div class="opt-list" id="btStrategy">
+                  <label class="opt"><input type="radio" name="strategy" value="arbitrage" checked /><span><strong>Arbitrage</strong><small>Cross-contract dislocation capture</small></span></label>
+                  <label class="opt"><input type="radio" name="strategy" value="meanrev" /><span><strong>Mean Reversion</strong><small>Fade basis extremes vs. reference</small></span></label>
+                  <label class="opt"><input type="radio" name="strategy" value="spread" /><span><strong>Spread Trading</strong><small>Long/short contract pairs</small></span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="field">
+                <legend>Time Period</legend>
+                <div class="seg seg--wrap" id="btPeriod" role="group" aria-label="Backtest period">
+                  <button class="seg__btn is-active" type="button" data-period="1m">1 Month</button>
+                  <button class="seg__btn" type="button" data-period="3m">3 Months</button>
+                  <button class="seg__btn" type="button" data-period="6m">6 Months</button>
+                  <button class="seg__btn" type="button" data-period="1y">1 Year</button>
+                </div>
+              </fieldset>
+
+              <button class="btn btn--primary btn--block" id="btRun" type="submit">
+                <svg class="ico ico--sm"><use href="#i-backtest"/></svg> Run Backtest
+              </button>
+              <div class="progress" id="btProgress" hidden>
+                <div class="progress__bar"><span id="btProgressBar"></span></div>
+                <p class="progress__label" id="btProgressLabel">Replaying tape…</p>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel glass bt-results" aria-labelledby="btResTitle">
+            <header class="panel__head">
+              <div><h3 class="panel__title" id="btResTitle">Results</h3>
+                <p class="panel__sub" id="btResSub">Run a backtest to populate results</p></div>
+              <span class="tag tag--gold" id="btTag">Awaiting run</span>
+            </header>
+
+            <div class="skeleton-grid" id="btSkeleton">
+              <span class="sk sk--lg"></span><span class="sk"></span><span class="sk"></span>
+              <span class="sk"></span><span class="sk"></span><span class="sk"></span>
+            </div>
+
+            <div id="btOutput" hidden>
+              <div class="result-grid" id="btResultGrid"><!-- rendered --></div>
+              <div class="chart-wrap chart-wrap--lg">
+                <canvas id="chartEquity" aria-label="Equity curve of the simulated backtest" role="img"></canvas>
+              </div>
+              <div class="chart-wrap">
+                <canvas id="chartMonthly" aria-label="Bar chart of monthly returns" role="img"></canvas>
+              </div>
+              <p class="disclaimer-note">
+                <svg class="ico ico--xs"><use href="#i-shield"/></svg>
+                SIMULATED BACKTEST — NOT FINANCIAL ADVICE. Results are generated from a synthetic price model in the browser.
+              </p>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- ============ VIEW: SETTINGS ============ -->
+      <section class="view" id="view-settings" data-view="settings" aria-label="Settings" hidden>
+        <header class="view__head">
+          <div>
+            <h2 class="view__title">Settings</h2>
+            <p class="view__sub">Terminal preferences are stored locally in your browser.</p>
+          </div>
+        </header>
+
+        <div class="grid-2">
+          <section class="panel glass">
+            <header class="panel__head"><div><h3 class="panel__title">Simulation Engine</h3><p class="panel__sub">Control the synthetic market feed</p></div></header>
+            <div class="set-row">
+              <div><strong>Feed speed</strong><small>How often prices are re-generated</small></div>
+              <div class="seg seg--sm" id="speedSeg" role="group" aria-label="Simulation speed">
+                <button class="seg__btn" type="button" data-speed="0.5">0.5×</button>
+                <button class="seg__btn is-active" type="button" data-speed="1">1×</button>
+                <button class="seg__btn" type="button" data-speed="2">2×</button>
+                <button class="seg__btn" type="button" data-speed="4">4×</button>
+              </div>
+            </div>
+            <div class="set-row">
+              <div><strong>Pause simulation</strong><small>Freeze all live updates</small></div>
+              <button class="switch" id="pauseSwitch" type="button" role="switch" aria-checked="false"><span></span></button>
+            </div>
+            <div class="set-row">
+              <div><strong>Always show Market Open</strong><small>Simulated session ignores real MCX hours</small></div>
+              <button class="switch is-on" id="alwaysOpenSwitch" type="button" role="switch" aria-checked="true"><span></span></button>
+            </div>
+            <div class="set-row">
+              <div><strong>Reduce motion</strong><small>Disable decorative animations</small></div>
+              <button class="switch" id="motionSwitch" type="button" role="switch" aria-checked="false"><span></span></button>
+            </div>
+            <div class="set-actions">
+              <button class="btn btn--ghost" id="resetSimBtn" type="button"><svg class="ico ico--sm"><use href="#i-refresh"/></svg> Reset simulation</button>
+              <button class="btn btn--ghost" id="clearAllAlertsBtn" type="button">Clear all alerts</button>
+            </div>
+          </section>
+
+          <section class="panel glass">
+            <header class="panel__head"><div><h3 class="panel__title">Appearance</h3><p class="panel__sub">Accent, density and number format</p></div></header>
+            <div class="set-row">
+              <div><strong>Accent colour</strong><small>Terminal highlight palette</small></div>
+              <div class="swatches" id="accentSwatches">
+                <button class="swatch is-active" type="button" data-accent="gold" style="--sw:#F5C542" aria-label="Gold accent"></button>
+                <button class="swatch" type="button" data-accent="amber" style="--sw:#F59E0B" aria-label="Amber accent"></button>
+                <button class="swatch" type="button" data-accent="emerald" style="--sw:#34D399" aria-label="Emerald accent"></button>
+                <button class="swatch" type="button" data-accent="sapphire" style="--sw:#60A5FA" aria-label="Sapphire accent"></button>
+              </div>
+            </div>
+            <div class="set-row">
+              <div><strong>Compact density</strong><small>Tighter rows for small screens</small></div>
+              <button class="switch" id="densitySwitch" type="button" role="switch" aria-checked="false"><span></span></button>
+            </div>
+            <div class="set-row set-row--stack">
+              <div><strong>About this prototype</strong><small>Everything runs client-side — no backend, no build step.</small></div>
+              <ul class="about-list">
+                <li><span>Stack</span><strong>HTML5 · CSS3 · Vanilla JS</strong></li>
+                <li><span>Charts</span><strong>Chart.js (CDN) + canvas fallback</strong></li>
+                <li><span>Data</span><strong>Synthetic market simulator</strong></li>
+                <li><span>Execution</span><strong class="tag tag--red">Disabled by design</strong></li>
+              </ul>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <!-- ---------- FOOTER ---------- -->
+    <footer class="footer">
+      <div class="footer__top">
+        <div class="footer__brand">
+          <span class="brand__mark brand__mark--sm" aria-hidden="true">
+            <svg viewBox="0 0 32 32"><path d="M9 22.5 14 9.5h4l5 13h-3.6l-1-2.7h-4.8l-1 2.7H9Zm5.6-5.4h2.8L16 12.2l-1.4 4.9Z" fill="currentColor"/><path d="M7 25h18" stroke="currentColor" stroke-width="1.2" opacity=".5"/></svg>
+          </span>
+          <div>
+            <strong>GoldSense AI</strong>
+            <p>AI-powered gold futures intelligence.</p>
+          </div>
+        </div>
+        <nav class="footer__links" aria-label="Footer">
+          <a href="#/dashboard" data-route="dashboard">Dashboard</a>
+          <button class="footer__link" type="button" data-doc="documentation">Documentation</button>
+          <button class="footer__link" type="button" data-doc="privacy">Privacy</button>
+          <button class="footer__link" type="button" data-doc="disclaimer">Disclaimer</button>
+        </nav>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__disclaimer">
+          GoldSense AI is a technology prototype for analytics and educational demonstration. Market prices shown in
+          this frontend are simulated and should not be considered financial advice or an instruction to trade.
+        </p>
+        <p class="footer__meta"><span class="dot dot--live"></span> Prototype • Market data is simulated</p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ============================= MODALS ============================= -->
+  <div class="modal" id="contractModal" role="dialog" aria-modal="true" aria-labelledby="cmName" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__panel glass" role="document">
+      <header class="modal__head">
+        <div>
+          <p class="modal__eyebrow" id="cmEyebrow">MCX • Gold Futures</p>
+          <h3 class="modal__title" id="cmName">GOLDM</h3>
+        </div>
+        <button class="icon-btn" type="button" data-close aria-label="Close dialog"><svg class="ico"><use href="#i-close"/></svg></button>
+      </header>
+      <div class="modal__body">
+        <div class="cm-top">
+          <div>
+            <p class="cm-price" id="cmPrice">₹72,910.00</p>
+            <p class="cm-change" id="cmChange">+1.12%</p>
+          </div>
+          <span class="badge badge--lg" id="cmSignal">BUY</span>
+        </div>
+        <div class="metric-grid" id="cmMetrics"><!-- rendered --></div>
+        <div class="chart-wrap chart-wrap--sm">
+          <canvas id="chartModal" aria-label="Price and spread history of the selected contract" role="img"></canvas>
+        </div>
+        <div class="cm-ai">
+          <span class="insight__glyph insight__glyph--sm" aria-hidden="true"><svg class="ico ico--sm"><use href="#i-spark"/></svg></span>
+          <div>
+            <strong>AI explanation</strong>
+            <p id="cmExplain"></p>
+          </div>
+        </div>
+      </div>
+      <footer class="modal__foot">
+        <button class="btn btn--buy" id="cmBuy" type="button">BUY SIGNAL</button>
+        <button class="btn btn--sell" id="cmSell" type="button">SELL SIGNAL</button>
+        <button class="btn btn--ghost" type="button" data-close>CLOSE</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal" id="scanModal" role="dialog" aria-modal="true" aria-labelledby="scanTitle" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__panel modal__panel--scan glass" role="document">
+      <div class="radar" aria-hidden="true"><span class="radar__ring"></span><span class="radar__ring"></span><span class="radar__ring"></span><span class="radar__sweep"></span></div>
+      <h3 class="modal__title" id="scanTitle">Scanning Gold Futures…</h3>
+      <p class="modal__sub">Normalizing contract sizes and re-pricing every pair</p>
+      <ul class="scan-steps" id="scanSteps">
+        <li data-step="0"><span class="scan-steps__icon"><svg class="ico ico--sm"><use href="#i-check"/></svg></span>GOLDM analyzed</li>
+        <li data-step="1"><span class="scan-steps__icon"><svg class="ico ico--sm"><use href="#i-check"/></svg></span>GOLDTEN analyzed</li>
+        <li data-step="2"><span class="scan-steps__icon"><svg class="ico ico--sm"><use href="#i-check"/></svg></span>GOLDPETAL analyzed</li>
+        <li data-step="3"><span class="scan-steps__icon"><svg class="ico ico--sm"><use href="#i-check"/></svg></span>Prices normalized</li>
+        <li data-step="4"><span class="scan-steps__icon"><svg class="ico ico--sm"><use href="#i-check"/></svg></span>Spread calculated</li>
+        <li data-step="5"><span class="scan-steps__icon"><svg class="ico ico--sm"><use href="#i-check"/></svg></span>Arbitrage opportunities detected</li>
+      </ul>
+      <p class="scan-result" id="scanResult" hidden><svg class="ico ico--sm"><use href="#i-spark"/></svg> <strong>3 potential opportunities detected</strong></p>
+      <div class="modal__foot modal__foot--center">
+        <button class="btn btn--ghost" type="button" id="scanCancel">Cancel</button>
+        <button class="btn btn--gold" type="button" id="scanDone" hidden>View Opportunities</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="execModal" role="dialog" aria-modal="true" aria-labelledby="execTitle" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__panel modal__panel--sm glass" role="document">
+      <header class="modal__head">
+        <div><p class="modal__eyebrow">Simulation only</p><h3 class="modal__title" id="execTitle">Execute Analysis</h3></div>
+        <button class="icon-btn" type="button" data-close aria-label="Close dialog"><svg class="ico"><use href="#i-close"/></svg></button>
+      </header>
+      <div class="modal__body">
+        <div class="exec-ticket" id="execTicket"><!-- rendered --></div>
+        <div class="notice notice--warn">
+          <svg class="ico ico--sm"><use href="#i-shield"/></svg>
+          <p><strong>Trading execution is disabled in this prototype.</strong> GoldSense AI analyses and visualises
+          simulated data only — no order is ever routed to an exchange or broker.</p>
+        </div>
+      </div>
+      <footer class="modal__foot">
+        <button class="btn btn--ghost" type="button" data-close>CLOSE</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal" id="docModal" role="dialog" aria-modal="true" aria-labelledby="docTitle" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__panel glass" role="document">
+      <header class="modal__head">
+        <div><p class="modal__eyebrow">GoldSense AI</p><h3 class="modal__title" id="docTitle">Documentation</h3></div>
+        <button class="icon-btn" type="button" data-close aria-label="Close dialog"><svg class="ico"><use href="#i-close"/></svg></button>
+      </header>
+      <div class="modal__body doc-body" id="docBody"></div>
+      <footer class="modal__foot"><button class="btn btn--ghost" type="button" data-close>CLOSE</button></footer>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="false"></div>
+
+  <!-- Chart.js via CDN (non-blocking: a canvas fallback renderer takes over if it fails) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <script src="script.js"></script>
+</body>
+</html>
